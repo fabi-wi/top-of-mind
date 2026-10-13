@@ -123,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         contentController.view.frame = NSRect(origin: .zero, size: size)
         NSApp.activate(ignoringOtherApps: true)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.isMovableByWindowBackground = false
         popover.contentViewController?.view.window?.makeKey()
     }
 
@@ -213,4 +214,3 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         exit(EXIT_FAILURE)
     }
 }
-

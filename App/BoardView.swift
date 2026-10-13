@@ -273,7 +273,6 @@ struct TaskRow: View {
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 10)
-                .onTapGesture(count: 2, perform: onEdit)
             Menu {
                 actions
             } label: {
@@ -294,7 +293,9 @@ struct TaskRow: View {
             if targeted { Rectangle().fill(tint.opacity(0.65)).frame(height: 2) }
         }
         .contextMenu { actions }
-        .draggable(task.id.uuidString) {
+        .onDrag {
+            NSItemProvider(object: task.id.uuidString as NSString)
+        } preview: {
             Text(task.title).font(.system(size: 13)).padding(10)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 9))
         }

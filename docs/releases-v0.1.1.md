@@ -6,6 +6,7 @@ A quieter task panel with the same native glass approach as Codex Rate Limits.
 - Removed nested outer backgrounds, borders and clipping that created a doubled edge.
 - Removed the Inbox heading, subtitle, visible task counts, empty-list prompts and footer hints.
 - Kept quick task entry, the spacious coloured matrix, short quadrant rules and the pin.
+- Improved drag handling for moving and reordering tasks; title editing stays in each task's menu.
 - Completed tasks and Trash remain accessible through View options.
 
 Your existing tasks and preferences are preserved. The old theme field remains readable for compatibility and no longer controls the panel's appearance.

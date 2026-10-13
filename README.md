@@ -1,4 +1,4 @@
-![Top of Mind — a glass menu bar task inbox and Eisenhower matrix](docs/assets/top-of-mind-hero-v2.png)
+![Top of Mind — a glass menu bar task inbox and Eisenhower matrix](docs/assets/top-of-mind-hero-v0.1.1.png)
 
 # Top of Mind
 
@@ -36,8 +36,7 @@ The current release is ad-hoc signed and is not Apple-notarized. On a downloaded
 
 Putting a task in **Discard** does not delete it. Trash is a separate action.
 
-![Light appearance](docs/assets/top-of-mind-light.png)
-![Dark appearance](docs/assets/top-of-mind-dark.png)
+![Top of Mind native menu bar panel](docs/assets/top-of-mind-v0.1.1.png)
 
 The screenshots use illustrative tasks. Your first launch starts with an empty inbox.
 
