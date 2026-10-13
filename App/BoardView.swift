@@ -94,6 +94,8 @@ struct BoardView: View {
                 Divider()
                 Button("Completed tasks") { history = .completed }
                 Button("Trash") { history = .trash }
+                Divider()
+                Button("Quit Top of Mind", systemImage: "power") { NSApplication.shared.terminate(nil) }
             } label: {
                 Image(systemName: "slider.horizontal.3").font(.system(size: 13, weight: .medium))
                     .frame(width: 29, height: 29)

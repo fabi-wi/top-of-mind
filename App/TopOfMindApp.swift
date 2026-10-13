@@ -46,6 +46,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     init(options: LaunchOptions) { self.options = options }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let mainMenu = NSMenu()
+        let applicationMenu = NSMenu()
+        let applicationItem = NSMenuItem()
+        applicationItem.submenu = applicationMenu
+        mainMenu.addItem(applicationItem)
+        let quitItem = NSMenuItem(title: "Quit Top of Mind", action: #selector(quitApplication), keyEquivalent: "q")
+        quitItem.target = self
+        applicationMenu.addItem(quitItem)
+        NSApp.mainMenu = mainMenu
         store = BoardStore(demo: options.demo, theme: options.theme)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
