@@ -1,0 +1,27 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check scripts
+        run: for script in scripts/*.sh; do bash -n "$script" || exit; done
+      - name: Build, test and package
+        run: ./scripts/package_release.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TopOfMind-macos-universal
+          path: |
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 14
