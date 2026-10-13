@@ -22,7 +22,7 @@ struct LaunchOptions {
     var snapshotPath: String?
 
     init(arguments: [String]) {
-        demo = arguments.contains("--demo")
+        demo = arguments.contains("--demo") || (Bundle.main.object(forInfoDictionaryKey: "TopOfMindDemoMode") as? Bool == true)
         if let index = arguments.firstIndex(of: "--theme"), arguments.indices.contains(index + 1) {
             theme = ThemePreference(rawValue: arguments[index + 1])
         }
@@ -104,6 +104,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     @objc private func openPanel() {
         guard let button = statusItem?.button else { return }
         if let demoPanel { demoPanel.makeKeyAndOrderFront(nil); return }
+        let size = panelSize()
+        popover.contentSize = size
+        contentController.view.frame = NSRect(origin: .zero, size: size)
         NSApp.activate(ignoringOtherApps: true)
         updateAppearance()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -206,7 +209,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private func snapshotFailed(_ message: String) {
         print("Snapshot failed: \(message)")
-        NSApp.terminate(nil)
+        exit(EXIT_FAILURE)
     }
 }
 

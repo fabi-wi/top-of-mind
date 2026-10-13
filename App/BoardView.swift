@@ -3,14 +3,17 @@ import SwiftUI
 import UniformTypeIdentifiers
 import TopOfMindCore
 
+// Name the property wrapper explicitly to avoid the newer SDK's State macro overload.
+private typealias ViewState<Value> = SwiftUI.State<Value>
+
 struct BoardView: View {
     @ObservedObject var store: BoardStore
     var onClose: () -> Void
     var onAppearanceChange: () -> Void
     var onPinChange: () -> Void
-    @State private var draft = ""
-    @State private var editing: TaskEditor?
-    @State private var history: HistoryKind?
+    @ViewState private var draft = ""
+    @ViewState private var editing: TaskEditor?
+    @ViewState private var history: HistoryKind?
     @FocusState private var inputFocused: Bool
 
     private var foreground: Color { store.isDark ? .white.opacity(0.93) : Color(red: 0.10, green: 0.15, blue: 0.21) }
@@ -219,6 +222,7 @@ struct QuadrantView: View {
     @ObservedObject var store: BoardStore
     let destination: TaskDestination
     var onEdit: (TaskItem) -> Void
+    @ViewState private var targeted = false
 
     private var tint: Color {
         let colors: (light: Color, dark: Color)
@@ -264,6 +268,12 @@ struct QuadrantView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(fill.opacity(store.isDark ? 0.16 : 0.32), in: RoundedRectangle(cornerRadius: 15))
         .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(store.isDark ? fill.opacity(0.21) : .white.opacity(0.50)))
+        .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(tint.opacity(targeted ? 0.58 : 0), lineWidth: 2))
+        .contentShape(RoundedRectangle(cornerRadius: 15))
+        .dropDestination(for: String.self) { values, _ in
+            guard let string = values.first, let id = UUID(uuidString: string) else { return false }
+            return store.reorder(id, before: nil, in: destination)
+        } isTargeted: { targeted = $0 }
     }
 }
 
@@ -272,7 +282,7 @@ struct TaskListView: View {
     let destination: TaskDestination
     let tint: Color
     var onEdit: (TaskItem) -> Void
-    @State private var targeted = false
+    @ViewState private var targeted = false
 
     var body: some View {
         ScrollView {
@@ -313,7 +323,7 @@ struct TaskRow: View {
     let task: TaskItem
     let tint: Color
     var onEdit: () -> Void
-    @State private var targeted = false
+    @ViewState private var targeted = false
 
     var body: some View {
         HStack(spacing: 9) {
@@ -425,7 +435,7 @@ struct HistoryView: View {
 struct RenameTaskView: View {
     @ObservedObject var store: BoardStore
     let task: TaskItem
-    @State private var title = ""
+    @ViewState private var title = ""
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
 

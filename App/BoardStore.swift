@@ -68,7 +68,8 @@ final class BoardStore: ObservableObject {
 
     @discardableResult
     func reorder(_ id: UUID, before beforeID: UUID?, in destination: TaskDestination) -> Bool {
-        commit { $0.reorder(id: id, beforeID: beforeID, destination: destination) }
+        guard snapshot.tasks.contains(where: { $0.id == id }) else { return false }
+        return commit(acceptUnchanged: true) { $0.reorder(id: id, beforeID: beforeID, destination: destination) }
     }
 
     func complete(_ id: UUID) { _ = commit { $0.complete(id: id) } }
@@ -77,7 +78,9 @@ final class BoardStore: ObservableObject {
 
     @discardableResult
     func rename(_ id: UUID, to title: String) -> Bool {
-        commit { $0.rename(id: id, title: title) }
+        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              snapshot.tasks.contains(where: { $0.id == id }) else { return false }
+        return commit(acceptUnchanged: true) { $0.rename(id: id, title: title) }
     }
 
     func setTheme(_ theme: ThemePreference) {
@@ -99,10 +102,10 @@ final class BoardStore: ObservableObject {
         }
     }
 
-    private func commit(_ mutation: (inout BoardEngine) -> Bool) -> Bool {
+    private func commit(acceptUnchanged: Bool = false, _ mutation: (inout BoardEngine) -> Bool) -> Bool {
         guard !isReadOnly else { return false }
         var candidate = engine
-        guard mutation(&candidate) else { return false }
+        guard mutation(&candidate) else { return acceptUnchanged }
         do {
             try repository?.save(candidate.snapshot)
             engine = candidate
