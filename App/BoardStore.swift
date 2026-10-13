@@ -11,9 +11,8 @@ final class BoardStore: ObservableObject {
     private let repository: JSONBoardRepository?
 
     var snapshot: BoardSnapshot { engine.snapshot }
-    var isDark: Bool { snapshot.theme == .dark }
 
-    init(demo: Bool, theme: ThemePreference?) {
+    init(demo: Bool) {
         if demo {
             repository = nil
             var demoEngine = BoardEngine()
@@ -31,7 +30,6 @@ final class BoardStore: ObservableObject {
                     _ = demoEngine.move(id: task.id, to: destination)
                 }
             }
-            demoEngine.setTheme(theme ?? .light)
             engine = demoEngine
         } else {
             let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -44,7 +42,6 @@ final class BoardStore: ObservableObject {
                 errorMessage = "Your saved tasks could not be opened. Your file is untouched. \(error.localizedDescription)"
                 isReadOnly = true
             }
-            if let theme, !isReadOnly { setTheme(theme) }
         }
     }
 
@@ -83,11 +80,6 @@ final class BoardStore: ObservableObject {
         return commit(acceptUnchanged: true) { $0.rename(id: id, title: title) }
     }
 
-    func setTheme(_ theme: ThemePreference) {
-        _ = commit { $0.setTheme(theme); return true }
-    }
-
-    func toggleTheme() { setTheme(isDark ? .light : .dark) }
     func togglePin() { _ = commit { $0.setPinned(!snapshot.isPinned); return true } }
     func toggleLabels() { _ = commit { $0.setMatrixLabels(!snapshot.showsMatrixLabels); return true } }
 

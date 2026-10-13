@@ -8,7 +8,7 @@ A native macOS menu bar app with a quick task inbox and a spacious Eisenhower ma
 
 ## Install
 
-1. Download **TopOfMind-v0.1.0-macos-universal.zip** from [the latest release](https://github.com/fabi-wi/top-of-mind/releases/latest).
+1. Download **TopOfMind-v0.1.1-macos-universal.zip** from [the latest release](https://github.com/fabi-wi/top-of-mind/releases/latest).
 2. Unzip it and move **Top of Mind.app** into **Applications**.
 3. Open the app and click the checklist in your menu bar.
 
@@ -23,7 +23,7 @@ The current release is ad-hoc signed and is not Apple-notarized. On a downloaded
 - **Complete:** click a task's circle. Completed tasks stay available in history.
 - **Reconsider:** move a task back to Inbox whenever its priority changes.
 - **Trash:** deleted tasks stay in Trash and can be restored.
-- **Choose your appearance:** use the sun/moon button beside the pin. Light and dark mode are chosen by you, independently of macOS.
+- **Native glass:** the panel uses the same native macOS popover material as Codex Rate Limits, with subtle colours for the four quadrants.
 - **Keep it open:** pin the panel while organizing. Unpin to dismiss it when clicking elsewhere.
 - **Show matrix labels:** optional urgency/importance labels can be switched on from the app menu.
 
@@ -73,10 +73,10 @@ To build an app bundle without opening it:
 The bundle is created at `dist/Top of Mind.app`. To produce a universal release ZIP and SHA-256 checksum:
 
 ```sh
-./scripts/package_release.sh 0.1.0
+./scripts/package_release.sh 0.1.1
 ```
 
-The app is written in SwiftUI and AppKit. Its Foundation-only core handles ordering, destinations, task history, and local persistence. The menu bar icon uses Apple's template SF Symbols and adapts to the menu bar's contrast; the app's theme remains your choice.
+The app is written in SwiftUI and AppKit. Its Foundation-only core handles ordering, destinations, task history, and local persistence. The checklist menu bar icon is a template image that adapts to the menu bar's contrast. The popover supplies the app's glass and system appearance.
 
 ## License
 

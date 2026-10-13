@@ -9,15 +9,12 @@ private typealias ViewState<Value> = SwiftUI.State<Value>
 struct BoardView: View {
     @ObservedObject var store: BoardStore
     var onClose: () -> Void
-    var onAppearanceChange: () -> Void
     var onPinChange: () -> Void
     @ViewState private var draft = ""
     @ViewState private var editing: TaskEditor?
     @ViewState private var history: HistoryKind?
     @FocusState private var inputFocused: Bool
-
-    private var foreground: Color { store.isDark ? .white.opacity(0.93) : Color(red: 0.10, green: 0.15, blue: 0.21) }
-    private var secondary: Color { foreground.opacity(0.58) }
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         GeometryReader { geometry in
@@ -35,7 +32,7 @@ struct BoardView: View {
                                 .buttonStyle(.plain).accessibilityLabel("Dismiss save error")
                         }
                     }
-                    .foregroundStyle(store.isDark ? Color.yellow : Color(red: 0.50, green: 0.28, blue: 0.04))
+                    .foregroundStyle(colorScheme == .dark ? Color.yellow : Color(red: 0.50, green: 0.28, blue: 0.04))
                     .padding(10)
                     .background(Color.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 9))
                     .padding(.horizontal, 18).padding(.bottom, 10)
@@ -46,36 +43,18 @@ struct BoardView: View {
                     matrix
                 }
                 .padding(.horizontal, 18)
-                .padding(.bottom, 10)
-                HStack(spacing: 5) {
-                    Image(systemName: "hand.draw").font(.system(size: 10))
-                    Text("Drag to organize · Use ••• for more options")
-                    Spacer()
-                    Image(systemName: "internaldrive").font(.system(size: 10))
-                    Text("Saved on this Mac")
-                }
-                .font(.system(size: 10))
-                .foregroundStyle(secondary.opacity(0.8))
-                .padding(.horizontal, 22)
-                .padding(.bottom, 13)
+                .padding(.bottom, 18)
             }
-            .foregroundStyle(foreground)
+            .foregroundStyle(Color.primary)
             .font(.system(size: 13))
-            .background(store.isDark ? Color(red: 0.07, green: 0.09, blue: 0.12).opacity(0.57) : Color.white.opacity(0.20))
-            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.white.opacity(store.isDark ? 0.13 : 0.50), lineWidth: 1))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .preferredColorScheme(store.isDark ? .dark : .light)
             .sheet(item: $editing) { editor in
                 RenameTaskView(store: store, task: editor.task)
-                    .preferredColorScheme(store.isDark ? .dark : .light)
             }
             .sheet(item: $history) { kind in
                 HistoryView(store: store, kind: kind)
-                    .preferredColorScheme(store.isDark ? .dark : .light)
             }
         }
         .onAppear { if store.tasks(in: .inbox).isEmpty { inputFocused = true } }
-        .onChange(of: store.snapshot.theme) { _, _ in onAppearanceChange() }
         .onChange(of: store.snapshot.isPinned) { _, _ in onPinChange() }
     }
 
@@ -85,9 +64,6 @@ struct BoardView: View {
             Spacer()
             headerButton(symbol: store.snapshot.isPinned ? "pin.fill" : "pin", label: store.snapshot.isPinned ? "Unpin panel" : "Keep panel open", active: store.snapshot.isPinned) {
                 store.togglePin()
-            }
-            headerButton(symbol: store.isDark ? "sun.max" : "moon", label: store.isDark ? "Switch to light mode" : "Switch to dark mode") {
-                store.toggleTheme()
             }
             Menu {
                 Toggle("Show matrix axis labels", isOn: Binding(get: { store.snapshot.showsMatrixLabels }, set: { _ in store.toggleLabels() }))
@@ -99,7 +75,7 @@ struct BoardView: View {
             } label: {
                 Image(systemName: "slider.horizontal.3").font(.system(size: 13, weight: .medium))
                     .frame(width: 29, height: 29)
-                    .background(foreground.opacity(0.065), in: Circle())
+                    .background(Color.primary.opacity(0.065), in: Circle())
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
@@ -117,7 +93,7 @@ struct BoardView: View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 13, weight: .medium))
                 .frame(width: 29, height: 29)
-                .background(foreground.opacity(active ? 0.14 : 0.065), in: Circle())
+                .background(Color.primary.opacity(active ? 0.14 : 0.065), in: Circle())
         }
         .buttonStyle(.plain)
         .help(label)
@@ -137,7 +113,7 @@ struct BoardView: View {
                 Button(action: addTask) {
                     Image(systemName: "plus").font(.system(size: 13, weight: .semibold))
                         .frame(width: 23, height: 23)
-                        .background(foreground.opacity(0.09), in: Circle())
+                        .background(Color.primary.opacity(0.09), in: Circle())
                 }
                 .buttonStyle(.plain)
                 .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || store.isReadOnly)
@@ -145,41 +121,12 @@ struct BoardView: View {
                 .accessibilityLabel("Add task to inbox")
             }
             .padding(.horizontal, 12).padding(.vertical, 11)
-            .background(store.isDark ? Color.white.opacity(0.07) : Color.white.opacity(0.67), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(foreground.opacity(0.065)))
+            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.primary.opacity(0.065)))
             .padding(12)
-
-            HStack(alignment: .firstTextBaseline) {
-                Text("Inbox").font(.system(size: 16, weight: .semibold))
-                Spacer()
-                Text("\(store.tasks(in: .inbox).count)").font(.system(size: 11, weight: .medium)).foregroundStyle(secondary)
-            }
-            .padding(.horizontal, 16).padding(.top, 8)
-            Text("Sort whenever you’re ready.").font(.system(size: 11)).foregroundStyle(secondary)
-                .padding(.horizontal, 16).padding(.top, 4).padding(.bottom, 13)
-            TaskListView(store: store, destination: .inbox, tint: foreground, onEdit: { editing = TaskEditor(task: $0) })
+            TaskListView(store: store, destination: .inbox, tint: .primary, onEdit: { editing = TaskEditor(task: $0) })
                 .padding(.horizontal, 10)
-            Divider().overlay(foreground.opacity(0.05)).padding(.horizontal, 14)
-            HStack(spacing: 13) {
-                Button { history = .completed } label: {
-                    Label("\(store.history(.completed).count)", systemImage: "checkmark.circle")
-                }
-                .help("Completed tasks")
-                .accessibilityLabel("Completed tasks, \(store.history(.completed).count)")
-                Button { history = .trash } label: {
-                    Label("\(store.history(.trashed).count)", systemImage: "trash")
-                }
-                .help("Trash")
-                .accessibilityLabel("Trash, \(store.history(.trashed).count)")
-                Spacer()
-            }
-            .buttonStyle(.plain)
-            .font(.system(size: 11))
-            .foregroundStyle(secondary)
-            .padding(.horizontal, 16).padding(.vertical, 12)
         }
-        .background(store.isDark ? Color.white.opacity(0.035) : Color.white.opacity(0.26), in: RoundedRectangle(cornerRadius: 15))
-        .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(.white.opacity(store.isDark ? 0.10 : 0.32)))
     }
 
     private var matrix: some View {
@@ -189,7 +136,7 @@ struct BoardView: View {
                     Text("Urgent").frame(maxWidth: .infinity)
                     Text("Not urgent").frame(maxWidth: .infinity)
                 }
-                .font(.system(size: 10, weight: .medium)).foregroundStyle(secondary)
+                .font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
                 .padding(.leading, 17)
             }
             HStack(spacing: 8) {
@@ -206,7 +153,7 @@ struct BoardView: View {
     }
 
     private func verticalAxis(_ text: String) -> some View {
-        Text(text).font(.system(size: 10, weight: .medium)).foregroundStyle(secondary)
+        Text(text).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
             .fixedSize().rotationEffect(.degrees(-90)).frame(width: 10)
     }
 
@@ -225,6 +172,7 @@ struct QuadrantView: View {
     let destination: TaskDestination
     var onEdit: (TaskItem) -> Void
     @ViewState private var targeted = false
+    @Environment(\.colorScheme) private var colorScheme
 
     private var tint: Color {
         let colors: (light: Color, dark: Color)
@@ -235,7 +183,7 @@ struct QuadrantView: View {
         case .discard: colors = (Color(red: 0.51, green: 0.20, blue: 0.26), Color(red: 0.98, green: 0.62, blue: 0.68))
         case .inbox: colors = (.gray, .gray)
         }
-        return store.isDark ? colors.dark : colors.light
+        return colorScheme == .dark ? colors.dark : colors.light
     }
 
     private var fill: Color {
@@ -250,17 +198,12 @@ struct QuadrantView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(destination.displayName).font(.system(size: 20, weight: .bold, design: .rounded))
-                Spacer()
-                Text("\(store.tasks(in: destination).count)")
-                    .font(.system(size: 11, weight: .medium)).foregroundStyle(tint.opacity(0.62))
-            }
+            Text(destination.displayName).font(.system(size: 20, weight: .bold, design: .rounded))
             .foregroundStyle(tint)
             .padding(.horizontal, 18).padding(.top, 17)
             Text(destination.explanation)
                 .font(.system(size: 11))
-                .foregroundStyle(tint.opacity(store.isDark ? 0.85 : 0.90))
+                .foregroundStyle(tint.opacity(0.90))
                 .lineLimit(2)
                 .frame(height: 29, alignment: .topLeading)
                 .padding(.horizontal, 18).padding(.top, 5)
@@ -268,8 +211,7 @@ struct QuadrantView: View {
                 .padding(.horizontal, 10).padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(fill.opacity(store.isDark ? 0.16 : 0.32), in: RoundedRectangle(cornerRadius: 15))
-        .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(store.isDark ? fill.opacity(0.21) : .white.opacity(0.50)))
+        .background(fill.opacity(colorScheme == .dark ? 0.12 : 0.22), in: RoundedRectangle(cornerRadius: 15))
         .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(tint.opacity(targeted ? 0.58 : 0), lineWidth: 2))
         .contentShape(RoundedRectangle(cornerRadius: 15))
         .dropDestination(for: String.self) { values, _ in
@@ -291,17 +233,7 @@ struct TaskListView: View {
             LazyVStack(spacing: 0) {
                 ForEach(store.tasks(in: destination), id: \.id) { task in
                     TaskRow(store: store, task: task, tint: tint, onEdit: { onEdit(task) })
-                    Divider().overlay(tint.opacity(0.04)).padding(.horizontal, 6)
-                }
-                if store.tasks(in: destination).isEmpty {
-                    VStack(spacing: 8) {
-                        Image(systemName: destination == .inbox ? "tray" : "arrow.down.to.line")
-                            .font(.system(size: 17, weight: .light))
-                        Text(destination == .inbox ? "A thought? Add it above." : "Drop a task here")
-                            .font(.system(size: 11))
-                    }
-                    .foregroundStyle(tint.opacity(store.isDark ? 0.52 : 0.45))
-                    .frame(maxWidth: .infinity).padding(.top, 38)
+                    Divider().padding(.horizontal, 6)
                 }
                 Spacer(minLength: 35)
             }
@@ -331,12 +263,13 @@ struct TaskRow: View {
         HStack(spacing: 9) {
             Button { store.complete(task.id) } label: {
                 Image(systemName: "circle").font(.system(size: 17, weight: .light))
-                    .foregroundStyle(tint.opacity(store.isDark ? 0.80 : 0.72))
+                    .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
             .help("Complete task")
             .accessibilityLabel("Complete \(task.title)")
             Text(task.title).font(.system(size: 13))
+                .foregroundStyle(.primary)
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 10)
@@ -345,7 +278,7 @@ struct TaskRow: View {
                 actions
             } label: {
                 Image(systemName: "ellipsis").font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(tint.opacity(0.68)).frame(width: 23, height: 27)
+                    .foregroundStyle(.secondary).frame(width: 23, height: 27)
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
@@ -421,11 +354,6 @@ struct HistoryView: View {
                         }
                         .padding(.vertical, 11)
                         Divider()
-                    }
-                    if store.history(kind.lifecycle).isEmpty {
-                        Text(kind == .completed ? "Completed tasks will appear here." : "Your trash is empty.")
-                            .font(.system(size: 12)).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity).padding(.top, 50)
                     }
                 }
             }

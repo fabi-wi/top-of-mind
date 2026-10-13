@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import ServiceManagement
 import SwiftUI
 import TopOfMindCore
@@ -39,9 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var store: BoardStore!
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
-    private var contentController: GlassViewController!
+    private var contentController: NSHostingController<BoardView>!
     private var demoPanel: NSPanel?
-    private var cancellables: Set<AnyCancellable> = []
 
     init(options: LaunchOptions) { self.options = options }
 
@@ -55,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         quitItem.target = self
         applicationMenu.addItem(quitItem)
         NSApp.mainMenu = mainMenu
-        store = BoardStore(demo: options.demo, theme: options.theme)
+        store = BoardStore(demo: options.demo)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             let customImage = Bundle.main.url(forResource: "MenuBarIcon", withExtension: "png").flatMap { NSImage(contentsOf: $0) }
@@ -75,17 +73,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let view = BoardView(
             store: store,
             onClose: { [weak self] in self?.closePanel() },
-            onAppearanceChange: { [weak self] in self?.updateAppearance() },
             onPinChange: { [weak self] in self?.updatePin() }
         )
         let size = panelSize()
-        contentController = GlassViewController(rootView: view, size: size)
+        contentController = NSHostingController(rootView: view)
+        contentController.sizingOptions = []
+        contentController.view.setFrameSize(size)
         popover = NSPopover()
         popover.contentSize = size
         popover.contentViewController = contentController
         popover.delegate = self
         popover.animates = true
-        updateAppearance()
+        // NSPopover owns the glass, bezel, arrow and appearance, just as in Codex Rate Limits.
+        // An appearance override is only available for isolated documentation/demo captures.
+        if options.demo, let theme = options.theme {
+            let appearance = NSAppearance(named: theme == .dark ? .darkAqua : .aqua)
+            contentController.view.appearance = appearance
+            popover.appearance = appearance
+        }
         updatePin()
 
         if options.snapshotPath != nil {
@@ -117,23 +122,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.contentSize = size
         contentController.view.frame = NSRect(origin: .zero, size: size)
         NSApp.activate(ignoringOtherApps: true)
-        updateAppearance()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
     }
 
     private func closePanel() {
         if let demoPanel { demoPanel.orderOut(nil) } else { popover.performClose(nil) }
-    }
-
-    private func updateAppearance() {
-        guard let store, let contentController else { return }
-        let appearance = NSAppearance(named: store.isDark ? .darkAqua : .aqua)
-        contentController.view.appearance = appearance
-        contentController.effectView.material = .popover
-        contentController.effectView.state = .active
-        popover?.appearance = appearance
-        demoPanel?.appearance = appearance
     }
 
     private func updatePin() {
@@ -150,9 +144,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let open = NSMenuItem(title: "Open Top of Mind", action: #selector(openPanel), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
-        let appearance = NSMenuItem(title: store.isDark ? "Switch to Light Mode" : "Switch to Dark Mode", action: #selector(toggleTheme), keyEquivalent: "")
-        appearance.target = self
-        menu.addItem(appearance)
         let pin = NSMenuItem(title: "Keep Panel Open", action: #selector(togglePin), keyEquivalent: "")
         pin.target = self
         pin.state = store.snapshot.isPinned ? .on : .off
@@ -173,7 +164,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         statusItem.menu = nil
     }
 
-    @objc private func toggleTheme() { store.toggleTheme() }
     @objc private func togglePin() { store.togglePin() }
     @objc private func quitApplication() { NSApp.terminate(nil) }
     @objc private func toggleLogin() {
@@ -193,7 +183,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         panel.hasShadow = true
         panel.level = .floating
         panel.contentViewController = contentController
-        panel.appearance = NSAppearance(named: store.isDark ? .darkAqua : .aqua)
+        if let theme = options.theme {
+            panel.appearance = NSAppearance(named: theme == .dark ? .darkAqua : .aqua)
+        }
         panel.title = "Top of Mind"
         panel.center()
         panel.makeKeyAndOrderFront(nil)
@@ -222,31 +214,3 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 }
 
-@MainActor
-final class GlassViewController: NSViewController {
-    let effectView = NSVisualEffectView()
-    private let hostingView: NSHostingView<BoardView>
-    private let initialSize: NSSize
-
-    init(rootView: BoardView, size: NSSize) {
-        hostingView = NSHostingView(rootView: rootView)
-        initialSize = size
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
-
-    override func loadView() {
-        effectView.frame = NSRect(origin: .zero, size: initialSize)
-        effectView.material = .popover
-        effectView.blendingMode = .behindWindow
-        effectView.state = .active
-        effectView.wantsLayer = true
-        effectView.layer?.cornerRadius = 18
-        effectView.layer?.masksToBounds = true
-        hostingView.frame = effectView.bounds
-        hostingView.autoresizingMask = [.width, .height]
-        effectView.addSubview(hostingView)
-        view = effectView
-    }
-}
