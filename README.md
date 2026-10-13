@@ -1,4 +1,4 @@
-![Top of Mind — a glass menu bar task inbox and Eisenhower matrix](docs/assets/top-of-mind-hero.png)
+![Top of Mind — a glass menu bar task inbox and Eisenhower matrix](docs/assets/top-of-mind-hero-v2.png)
 
 # Top of Mind
 

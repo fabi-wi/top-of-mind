@@ -1,0 +1,10 @@
+Mode: Built-in imagegen editing
+Edit: Remove accidental cursor overlay from theme button and show actual sun icon.
+
+Use case: precise-object-edit
+Asset type: targeted correction to finished GitHub product hero
+Edit target: Image 1, the current Top of Mind product hero /Users/admin/Developer/my_projects/eisenhower-menu-bar/docs/assets/top-of-mind-hero.png.
+Supporting reference: Image 2, latest real dark app screenshot /Users/admin/Developer/my_projects/eisenhower-menu-bar/docs/assets/top-of-mind-dark.png; use ONLY its clean small sun outline icon in the top-right theme button as a shape reference. Do not copy any other changes from Image 2.
+Primary request: Make exactly ONE tiny local correction. In Image 1, the app panel has four controls along its upper-right edge: pin, theme, settings sliders, close. The SECOND button, immediately right of the pin, currently contains an accidental white mouse-pointer/arrow overlay. Remove ONLY that accidental pointer overlay. In its place, show the clean white thin sun outline icon with small rays, matching the actual theme button in Image 2. Preserve the existing circular button background, position, size and all spacing. On Image 1's 1672x941 canvas, this tiny target button is centered approximately x=1496,y=139, inside about x=1480..1512,y=123..155.
+Strict invariants: Keep EVERY other region visually unchanged from Image 1: complete canvas dimensions and landscape aspect, exact composition, backdrop and soft colours, appicon, all brand text and feature text, app panel position/shape/glass/shadow/pointer at top, task titles/order/counts, Inbox count 6, quadrant counts 2, explanatory captions, checkboxes, ellipsis, footer, all other header controls. Do not change the pin. Do not add "Test capture". Do not reorder the inbox or substitute content from Image 2. Do not resize, crop, relayout, repaint, or enhance the rest of the image.
+Constraints: Only the small second header button symbol changes from the pointer overlay to a sun outline. No new text, extra icons, colours, reflections, gradients or shadows. This is a one-object retouch of the existing hero, not a new image design.

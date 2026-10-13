@@ -17,3 +17,7 @@ The first public release of Top of Mind: a native macOS menu bar task inbox and 
 The release is ad-hoc signed, not Apple-notarized. macOS may require a first-launch approval in System Settings → Privacy & Security. Installation details are in the README.
 
 The accompanying `.sha256` file contains the archive checksum.
+
+## Verification
+
+23 core tests pass in the macOS build environment. Native Mac checks covered capture, matrix drops, destination menus, title editing, completion/trash recovery, long inbox scrolling, optional axis labels and manual appearance. The installed production app retained a task and the chosen theme after quitting and reopening. Package checksum, archive integrity and signature were verified after download.
